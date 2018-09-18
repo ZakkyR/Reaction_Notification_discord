@@ -22,15 +22,18 @@ async def on_message(message):
 
 @client.event
 async def on_reaction_add(reaction, user):
-    str_msg = [
-        ('{0}が{1}のメッセージにリアクションしました!').format(user.display_name, reaction.message.server.name),
-        "```",
-        reaction.message.content,
-        "```",
-        '絵文字:{0}'.format(reaction.emoji.name + '(カスタム)' if reaction.custom_emoji else reaction.emoji)
-    ]
-    
-    await client.send_message(reaction.message.author, '\n'.join(str_msg))
+    message = reaction.message
+
+    if db_access.count_user_mst(message.server.id, message.author.id) > 0:
+        str_msg = [
+            ('{0}が{1}のメッセージにリアクションしました!').format(user.display_name, reaction.message.server.name),
+            "```",
+            reaction.message.content,
+            "```",
+            '絵文字:{0}'.format(reaction.emoji.name + '(カスタム)' if reaction.custom_emoji else reaction.emoji)
+        ]
+        
+        await client.send_message(reaction.message.author, '\n'.join(str_msg))
 
 async def entry_user(message):
     try:
