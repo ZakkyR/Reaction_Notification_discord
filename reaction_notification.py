@@ -36,8 +36,25 @@ async def on_message(message):
     if command('del'):
         await delete_user(message)
 
+    suumo = 'スーモ❗️🌚ダン💥ダン💥ダン💥シャーン🎶スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚ス〜〜〜モ⤴スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝ス～～～モ⤵🌞'
     if message.content == 'あ！':
-        await client.send_message(message.channel, 'スーモ❗️🌚ダン💥ダン💥ダン💥シャーン🎶スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚ス〜〜〜モ⤴スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝ス～～～モ⤵🌞')
+        await client.send_message(message.channel, suumo)
+
+    elif message.content.startswith('あ！'):
+        lst_command = message.content.split(' ')
+
+        if len(lst_command) == 2:
+            try:
+                user_id = lst_command[1]
+
+                for c in ('<@', '>'):
+                    user_id = user_id.replace(c, '')
+
+                send_user = await client.get_user_info(user_id)
+                await client.send_message(send_user, suumo)
+
+            except:
+                pass
 
 # リアクション時rn!
 @client.event
