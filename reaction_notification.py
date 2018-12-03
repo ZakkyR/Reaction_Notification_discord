@@ -39,8 +39,6 @@ async def on_message(message):
     if message.content == 'あ！':
         await client.send_message(message.channel, 'スーモ❗️🌚ダン💥ダン💥ダン💥シャーン🎶スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚ス〜〜〜モ⤴スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝ス～～～モ⤵🌞')
 
-    if message.content == '今日の性癖を貼って':
-        await client.send_message(message.channel, 't!danbooru')
 # リアクション時rn!
 @client.event
 async def on_reaction_add(reaction, user):
