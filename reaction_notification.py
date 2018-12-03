@@ -9,6 +9,22 @@ TOKEN = os.environ['DISCORD_TOKEN']
 
 BOT_STR = 'rn!'
 
+'''''''''''''''
+Events
+'''''''''''''''
+# 初期登録
+@client.event
+async def on_server_join(server):
+    try:
+        if(db_access.count_server_mst(server.id) != 0):
+            db_access.upsert_server_mst(server.id)
+
+            await client.send_message(server.default_channel, 'リアクションをユーザーに通知します！\n使うには`' + BOT_STR + 'entry`と入力してください。')
+
+    except Exception as ex:
+        await client.send_message(server.default_channel, ex)
+
+# コマンド受付
 @client.event
 async def on_message(message):
 
@@ -20,13 +36,17 @@ async def on_message(message):
     if command('del'):
         await delete_user(message)
 
+    if message.content == 'あ！':
+        await client.send_message(message.channel, 'スーモ❗️🌚ダン💥ダン💥ダン💥シャーン🎶スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚ス〜〜〜モ⤴スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝ス～～～モ⤵🌞')
+
+# リアクション時rn!
 @client.event
 async def on_reaction_add(reaction, user):
     message = reaction.message
 
     if db_access.count_user_mst(message.server.id, message.author.id) > 0:
         str_msg = [
-            ('{0}が{1}のメッセージにリアクションしました!').format(user.display_name, reaction.message.server.name),
+            ('{0}が{1}:{2}のメッセージにリアクションしました!').format(user.display_name, reaction.message.server.name, reaction.message.channel.name),
             "```",
             reaction.message.content,
             "```",
@@ -35,6 +55,12 @@ async def on_reaction_add(reaction, user):
         
         await client.send_message(reaction.message.author, '\n'.join(str_msg))
 
+
+'''''''''''''''
+Methods
+'''''''''''''''
+
+# ユーザー登録
 async def entry_user(message):
     try:
         lst_command = message.content.split(' ')
@@ -70,6 +96,7 @@ async def entry_user(message):
         success_msg = '{0} をユーザー登録しました'.format(author.display_name)
         await client.send_message(message.channel, success_msg)
 
+# ユーザー削除
 async def delete_user(message):
     try:
         lst_command = message.content.split(' ')
