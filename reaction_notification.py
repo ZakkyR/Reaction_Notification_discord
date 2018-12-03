@@ -135,7 +135,7 @@ async def suumo(message):
     if message.content.startswith(key):
         lst_command = message.content.split(' ')
 
-        if len(lst_command) == 1:
+        if len(lst_command) == 1 and message.content == key:
             await client.send_message(message.channel, suumo)
 
         elif len(lst_command) == 2:
