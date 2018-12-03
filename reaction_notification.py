@@ -76,7 +76,7 @@ async def entry_user(message):
             try:
                 user_id = lst_command[1]
                 
-                for c in ('<@', '>'):
+                for c in ('<@', '>', '!'):
                     user_id = user_id.replace(c, '')
                     
                 author = await client.get_user_info(user_id)
@@ -142,7 +142,7 @@ async def suumo(message):
             try:
                 user_id = lst_command[1]
 
-                for c in ('<@', '>'):
+                for c in ('<@', '>', '!'):
                     user_id = user_id.replace(c, '')
 
                 send_user = await client.get_user_info(user_id)
