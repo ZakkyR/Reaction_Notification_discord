@@ -98,3 +98,27 @@ def get_shortcut_message(server_id:str, shortcut:str):
                 res = rows[0][0]
 
             return res
+
+def delete_shortcut(server_id:str, shortcut:str):
+    with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
+        with conn.cursor() as cur:
+
+            cur.execute(
+                "DELETE FROM MST_MESSAGE_SHORTCUT WHERE SERVER_ID = %s AND SC_KEY = %s;",
+                (server_id, shortcut)
+            )
+
+            conn.commit()
+
+def get_shortcut_list(server_id:str):
+    with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
+        with conn.cursor() as cur:
+
+            cur.execute(
+                "SELECT SC_KEY FROM MST_MESSAGE_SHORTCUT WHERE SERVER_ID = %s;",
+                (server_id,)
+            )
+
+            rows = cur.fetchall()
+
+            return rows

@@ -39,8 +39,14 @@ async def on_message(message:discord.Message):
             if command('del'):
                 await delete_user(message)
 
-            if command('add_msg'):
+            if command('sc_add'):
                 await regist_message(message)
+
+            if command('sc_del'):
+                await delete_message(message)
+
+            if command('sc_list'):
+                await get_shortcut_list(message)
 
             else:
                 # ショートカット
@@ -137,6 +143,9 @@ async def regist_message(message:discord.Message):
         raise ValueError('引数の数が違います')
 
     try:
+        if db_access.get_shortcut_message(message.server.id, lst_command[1].strip()) != None:
+            raise ValueError('ショートカット：`{0}`はすでに登録されています'.format(lst_command[1].strip()))
+
         sc_message = await client.get_message(message.channel, lst_command[2].strip())
         db_access.insert_shortcut(message.server.id, lst_command[1].strip(), sc_message.content)
 
@@ -153,6 +162,22 @@ async def regist_message(message:discord.Message):
         
     except discord.NotFound:
         raise ValueError('メッセージIDが間違っています')
+
+# メッセージショートカット削除
+async def delete_message(message:discord.Message):
+
+    lst_command = message.content.split(' ')
+
+    if len(lst_command) != 2:
+        raise ValueError('引数の数が違います')
+
+    if db_access.get_shortcut_message(message.server.id, lst_command[1].strip()) == None:
+        raise ValueError('ショートカット：`{0}`は存在しません'.format(lst_command[1].strip()))
+
+    db_access.delete_shortcut(message.server.id, lst_command[1].strip())
+
+    success_msg = 'ショートカット：`{0}` を削除しました'.format(lst_command[1].strip())
+    await client.send_message(message.channel, success_msg)
 
 # メッセージショートカット出力
 async def get_message(message:discord.Message):
@@ -177,5 +202,19 @@ async def get_message(message:discord.Message):
 
             except:
                 pass
+
+# メッセージショートカットリスト
+async def get_shortcut_list(message:discord.Message):
+    rows = db_access.get_shortcut_list(message.server.id)
+    sc_list = []
+
+    for row in rows:
+        sc_list.append("`{0}`".format(row[0]))
+
+    if len(sc_list) == 0:
+        raise ValueError('ショートカットは登録されていません')
+
+    else:
+        await client.send_message(message.channel, '\n'.join(sc_list))
 
 client.run(TOKEN)
