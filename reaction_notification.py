@@ -147,14 +147,16 @@ async def regist_message(message:discord.Message):
             raise ValueError('ショートカット：`{0}`はすでに登録されています'.format(lst_command[1].strip()))
 
         sc_message = await client.get_message(message.channel, lst_command[2].strip())
-        db_access.insert_shortcut(message.server.id, lst_command[1].strip(), sc_message.content)
+
+        message_list = [sc_message.content, ] + [file['url'] for file in sc_message.attachments]
+        db_access.insert_shortcut(message.server.id, lst_command[1].strip(), '\n'.join(message_list))
 
         success_msg = [
             "メッセージを登録しました",
             "ショートカット：`{0}`".format(lst_command[1].strip()),
             "メッセージ：",
             "```",
-            sc_message.content,
+            '\n'.join(message_list),
             "```",
         ]
         
@@ -182,6 +184,7 @@ async def delete_message(message:discord.Message):
 # メッセージショートカット出力
 async def get_message(message:discord.Message):
 
+    print(message.attachments)
     lst_command = message.content.split(' ')
 
     msg = db_access.get_shortcut_message(message.server.id, lst_command[0])
