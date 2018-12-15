@@ -26,18 +26,28 @@ async def on_server_join(server):
 
 # コマンド受付
 @client.event
-async def on_message(message):
+async def on_message(message:discord.Message):
 
-    command = lambda text: message.content.startswith(BOT_STR + text)
+    if not message.author.bot:
 
-    if command('entry'):
-        await entry_user(message)
+        command = lambda text: message.content.startswith(BOT_STR + text)
 
-    if command('del'):
-        await delete_user(message)
+        try:
+            if command('entry'):
+                await entry_user(message)
 
-    else:
-        await suumo(message)
+            if command('del'):
+                await delete_user(message)
+
+            if command('add_msg'):
+                await regist_message(message)
+
+            else:
+                # ショートカット
+                await get_message(message)
+
+        except Exception as ex:
+            await client.send_message(message.channel, ex)
 
 # リアクション時rn!
 @client.event
@@ -61,82 +71,99 @@ Methods
 '''''''''''''''
 
 # ユーザー登録
-async def entry_user(message):
-    try:
-        lst_command = message.content.split(' ')
-        print(lst_command)
+async def entry_user(message:discord.Message):
 
-        author = message.author
-        print(message.server)
+    lst_command = message.content.split(' ')
+    print(lst_command)
 
-        if len(lst_command) > 3:
-            raise ValueError('引数の数が違います')
+    author = message.author
+    print(message.server)
 
-        elif len(lst_command) == 2:
-            try:
-                user_id = lst_command[1]
+    if len(lst_command) > 3:
+        raise ValueError('引数の数が違います')
+
+    elif len(lst_command) == 2:
+        try:
+            user_id = lst_command[1]
+            
+            for c in ('<@', '>', '!'):
+                user_id = user_id.replace(c, '')
                 
-                for c in ('<@', '>', '!'):
-                    user_id = user_id.replace(c, '')
-                    
-                author = await client.get_user_info(user_id)
-            except:
-                raise ValueError('ユーザー名に誤りがあります')
-        
-        if db_access.count_user_mst(message.server.id, author.id) > 0:
-            error_msg = '{0} はすでに登録されています'.format(author.display_name)
-            raise ValueError(error_msg)
-
-        db_access.insert_user_mst(message.server.id, author.id)
-
-    except Exception as ex:
-        await client.send_message(message.channel, ex)
+            author = await client.get_user_info(user_id)
+        except:
+            raise ValueError('ユーザー名に誤りがあります')
     
-    else:
-        success_msg = '{0} をユーザー登録しました'.format(author.display_name)
-        await client.send_message(message.channel, success_msg)
+    if db_access.count_user_mst(message.server.id, author.id) > 0:
+        error_msg = '{0} はすでに登録されています'.format(author.display_name)
+        raise ValueError(error_msg)
+
+    db_access.insert_user_mst(message.server.id, author.id)
+    
+    success_msg = '{0} をユーザー登録しました'.format(author.display_name)
+    await client.send_message(message.channel, success_msg)
 
 # ユーザー削除
-async def delete_user(message):
-    try:
-        lst_command = message.content.split(' ')
+async def delete_user(message:discord.Message):
+    lst_command = message.content.split(' ')
 
-        author = message.author
+    author = message.author
 
-        if len(lst_command) > 3:
-            raise ValueError('引数の数が違います')
+    if len(lst_command) > 3:
+        raise ValueError('引数の数が違います')
 
-        elif len(lst_command) == 2:
-            try:
-                user_id = re.match('[0-9]*', lst_command[1])
-                print(user_id)
-                author = await client.get_user_info(user_id)
-            except:
-                raise ValueError('ユーザー名に誤りがあります')
-        
-        if db_access.count_user_mst(message.server.id, author.id) == 0:
-            error_msg = '{0} は登録されていません'.format(author.display_name)
-            raise ValueError(error_msg)
-
-        db_access.delete_user_mst(message.server.id, author.id)
-
-    except Exception as ex:
-        await client.send_message(message.channel, ex)
+    elif len(lst_command) == 2:
+        try:
+            user_id = re.match('[0-9]*', lst_command[1])
+            print(user_id)
+            author = await client.get_user_info(user_id)
+        except:
+            raise ValueError('ユーザー名に誤りがあります')
     
-    else:
-        success_msg = '{0} をユーザー削除しました'.format(author.display_name)
-        await client.send_message(message.channel, success_msg)
+    if db_access.count_user_mst(message.server.id, author.id) == 0:
+        error_msg = '{0} は登録されていません'.format(author.display_name)
+        raise ValueError(error_msg)
 
-# SUUMO
-async def suumo(message):
-    key = 'あ！'
-    suumo = 'スーモ❗️🌚ダン💥ダン💥ダン💥シャーン🎶スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚ス〜〜〜モ⤴スモ🌚スモ🌝スモ🌚スモ🌝スモ🌚スモ🌝ス～～～モ⤵🌞'
+    db_access.delete_user_mst(message.server.id, author.id)
 
-    if message.content.startswith(key):
-        lst_command = message.content.split(' ')
+    success_msg = '{0} をユーザー削除しました'.format(author.display_name)
+    await client.send_message(message.channel, success_msg)
 
-        if len(lst_command) == 1 and message.content == key:
-            await client.send_message(message.channel, suumo)
+# メッセージショートカット登録
+async def regist_message(message:discord.Message):
+
+    lst_command = message.content.split(' ')
+
+    if len(lst_command) != 3:
+        raise ValueError('引数の数が違います')
+
+    try:
+        sc_message = await client.get_message(message.channel, lst_command[2].strip())
+        db_access.insert_shortcut(message.server.id, lst_command[1].strip(), sc_message.content)
+
+        success_msg = [
+            "メッセージを登録しました",
+            "ショートカット：`{0}`".format(lst_command[1].strip()),
+            "メッセージ：",
+            "```",
+            sc_message.content,
+            "```",
+        ]
+        
+        await client.send_message(message.channel, '\n'.join(success_msg))
+        
+    except discord.NotFound:
+        raise ValueError('メッセージIDが間違っています')
+
+# メッセージショートカット出力
+async def get_message(message:discord.Message):
+
+    lst_command = message.content.split(' ')
+
+    msg = db_access.get_shortcut_message(message.server.id, lst_command[0])
+
+    if msg != None:
+        if len(lst_command) == 1 and message.content == lst_command[0]:
+            await client.send_message(message.channel, msg)
 
         elif len(lst_command) == 2:
             try:
@@ -146,7 +173,7 @@ async def suumo(message):
                     user_id = user_id.replace(c, '')
 
                 send_user = await client.get_user_info(user_id)
-                await client.send_message(send_user, suumo)
+                await client.send_message(send_user, msg)
 
             except:
                 pass
