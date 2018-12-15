@@ -36,16 +36,16 @@ async def on_message(message:discord.Message):
             if command('entry'):
                 await entry_user(message)
 
-            if command('del'):
+            elif command('del'):
                 await delete_user(message)
 
-            if command('sc_add'):
+            elif command('sc_add'):
                 await regist_message(message)
 
-            if command('sc_del'):
+            elif command('sc_del'):
                 await delete_message(message)
 
-            if command('sc_list'):
+            elif command('sc_list'):
                 await get_shortcut_list(message)
 
             else:
